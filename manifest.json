@@ -1,0 +1,43 @@
+{
+  "manifest_version": 2,
+  "name": "TabXpert",
+  "version": "1.0.10",
+  "description": "Sorts tabs by domain and displays them in a tree-style sidebar",
+  "permissions": [
+    "tabs",
+    "activeTab"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "author": "Flávio HG",
+  "homepage_url": "https://github.com/xfhg/tabxpert",
+  "sidebar_action": {
+    "default_title": "TabXpert",
+    "default_panel": "sidebar.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "YOURID@YOURID.ID"
+    }
+  },
+  "web_accessible_resources": [
+    "tailwind.min.css",
+    "sidebar.css",
+    "favicon.png"
+
+  ]
+}
