@@ -5,7 +5,8 @@
   "description": "Sorts tabs by domain and displays them in a tree-style sidebar",
   "permissions": [
     "tabs",
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "background": {
     "scripts": ["background.js"],

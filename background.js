@@ -54,7 +54,6 @@ function handleTabRemoved(tabId, removeInfo) {
   }
   sendUpdate();
 }
-
 function handleTabUpdated(tabId, changeInfo, tab) {
   if (changeInfo.url) {
     updateTabsByDomain();
@@ -82,3 +81,25 @@ browser.runtime.onConnect.addListener((port) => {
 
 browser.runtime.onStartup.addListener(updateTabsByDomain);
 browser.runtime.onInstalled.addListener(updateTabsByDomain);
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "saveStash") {
+    browser.storage.local.get('stashes').then((result) => {
+      const stashes = result.stashes || [];
+      stashes.push(message.stash);
+      browser.storage.local.set({ stashes: stashes });
+    });
+  } else if (message.action === "loadStash") {
+    browser.windows.getCurrent().then((currentWindow) => {
+      message.stash.tabs.forEach(tab => {
+        browser.tabs.create({ url: tab.url, windowId: currentWindow.id });
+      });
+    });
+  } else if (message.action === "deleteStash") {
+    browser.storage.local.get('stashes').then((result) => {
+      const stashes = result.stashes || [];
+      const updatedStashes = stashes.filter(s => s.id !== message.stashId);
+      browser.storage.local.set({ stashes: updatedStashes });
+    });
+  }
+});

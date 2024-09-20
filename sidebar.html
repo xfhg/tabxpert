@@ -23,6 +23,11 @@
                     <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
                 </svg>
             </button> -->
+            <button id="stash-button" class="p-2 bg-purple-500 text-white hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                </svg>
+            </button>
             <button id="dark-mode-toggle" class="p-2 bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-indigo-500 dark:hover:bg-indigo-600">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
@@ -31,8 +36,14 @@
         </div>
 
         <div id="total-tab-count" class="mb-4 text-gray-600 dark:text-gray-400"></div>
-
+        <div class="mt-4">
+            <!-- <h2 class="text-lg font-semibold mb-2">🔗</h2> -->
+            <hr class="mb-2">
+            <div id="stash-list" class="space-y-2"></div>
+        </div>
+        <hr class="mb-2">
         <div id="tab-tree" class="space-y-2"></div>
+
     </div>
 
     <script src="sidebar.js"></script>

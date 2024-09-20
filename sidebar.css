@@ -245,3 +245,85 @@ body {
 .dark .domain-title button:hover {
   background-color: #2d3748;
 }
+
+
+#stash-button{
+  border-radius: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  border: none;
+}
+
+.stash {
+  margin-bottom: 8px;
+}
+
+.stash-title {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dark .stash-title {
+  background-color: #374151;
+}
+
+.stash-title:hover {
+  background-color: #d1d5db;
+}
+
+.dark .stash-title:hover {
+  background-color: #4b5563;
+}
+
+.stash-tabs {
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.stash-tab {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.stash-tab:hover {
+  background-color: #f3f4f6;
+}
+
+.dark .stash-tab:hover {
+  background-color: #1f2937;
+}
+
+.stash-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.stash-action-btn {
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.restore-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.restore-btn:hover {
+  background-color: #059669;
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}

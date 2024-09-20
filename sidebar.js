@@ -53,7 +53,7 @@ const createDomainElement = (domain, domainData) => {
 
   // Create sort button
   const sortButton = document.createElement('button');
-  sortButton.className = 'ml-2 p-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
+  sortButton.className = 'ml-2 p-1 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
   sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3z" /></svg>';
   sortButton.title = 'Group all tabs for this domain together';
   sortButton.addEventListener('click', (e) => {
@@ -62,7 +62,7 @@ const createDomainElement = (domain, domainData) => {
   });
 
   domainTitle.innerHTML = `
-    <span class="fold-icon mr-2 transform transition-transform duration-200">${domainStates[domain] ? '▶' : '▼'}</span>
+    <span class="fold-icon mr-2 transform transition-transform duration-200">${domainStates[domain] ? '' : ''}</span>
     <span class="domain-name flex-grow truncate">${domain}</span>
     <span class="tab-count text-sm text-gray-600 dark:text-gray-400">(${domainData.tabs.length})</span>
   `;
@@ -110,7 +110,7 @@ const updateDomainView = (domain) => {
     const foldIcon = domainElement.querySelector('.fold-icon');
     if (tabList && foldIcon) {
       tabList.classList.toggle('hidden', domainStates[domain]);
-      foldIcon.textContent = domainStates[domain] ? '▶' : '▼';
+      foldIcon.textContent = domainStates[domain] ? '' : '';
       foldIcon.style.transform = domainStates[domain] ? 'rotate(0deg)' : 'rotate(90deg)';
     }
   }
@@ -149,7 +149,6 @@ const updateSidebar = (newTabsByDomain) => {
     updateTotalTabCount();
   }
 };
-
 const updateActiveTab = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs[0]) {
@@ -206,7 +205,6 @@ const filterTabs = (searchTerm) => {
 
   updateTotalTabCount(visibleTabCount);
 };
-
 const updateTotalTabCount = (visibleCount) => {
   const totalCount = Object.values(tabsByDomain).reduce((sum, domainData) => sum + domainData.tabs.length, 0);
   const totalCountElement = document.getElementById('total-tab-count');
@@ -248,6 +246,7 @@ const toggleDarkMode = () => {
   updateUIForDarkMode(isDarkMode);
 };
 
+
 const updateUIForDarkMode = (isDarkMode) => {
   document.body.classList.toggle('bg-gray-100', !isDarkMode);
   document.body.classList.toggle('text-gray-800', !isDarkMode);
@@ -277,7 +276,6 @@ const updateUIForDarkMode = (isDarkMode) => {
     githubLink.classList.toggle('dark:bg-gray-600', isDarkMode);
     githubLink.classList.toggle('dark:hover:bg-gray-500', isDarkMode);
   }
-
   const darkModeToggle = document.getElementById('dark-mode-toggle');
   if (darkModeToggle) {
     darkModeToggle.classList.toggle('bg-yellow-500', !isDarkMode);
@@ -348,6 +346,17 @@ const initializeSidebar = () => {
     });
   }
 
+  const stashButton = document.getElementById('stash-button');
+  if (stashButton) {
+    stashButton.addEventListener('click', saveStash);
+  }
+
+  browser.storage.local.get('stashes').then((result) => {
+    stashes = result.stashes || [];
+    updateStashList();
+  });
+
+
   const toggleAllButton = document.getElementById('toggle-all');
   if (toggleAllButton) {
     toggleAllButton.addEventListener('click', toggleAll);
@@ -372,5 +381,85 @@ const initializeSidebar = () => {
 
   port.postMessage({action: "requestInitialData"});
 };
+
+let stashes = [];
+
+const saveStash = () => {
+  browser.windows.getCurrent({ populate: true }).then((windowInfo) => {
+    const stash = {
+      id: Date.now(),
+      name: `Stash ${stashes.length + 1}`,
+      tabs: windowInfo.tabs.map(tab => ({ url: tab.url, title: tab.title }))
+    };
+    stashes.push(stash);
+    browser.storage.local.set({ stashes: stashes });
+    updateStashList();
+  });
+};
+
+const loadStash = (stashId) => {
+  const stash = stashes.find(s => s.id === stashId);
+  if (stash) {
+    browser.windows.getCurrent().then((currentWindow) => {
+      stash.tabs.forEach(tab => {
+        browser.tabs.create({ url: tab.url, windowId: currentWindow.id });
+      });
+    });
+  }
+};
+
+const deleteStash = (stashId) => {
+  stashes = stashes.filter(s => s.id !== stashId);
+  browser.storage.local.set({ stashes: stashes });
+  updateStashList();
+};
+
+const updateStashList = () => {
+  const stashList = document.getElementById('stash-list');
+  stashList.innerHTML = '';
+  stashes.forEach(stash => {
+    const stashElement = document.createElement('div');
+    stashElement.className = 'stash';
+    stashElement.innerHTML = `
+      <div class="stash-title">
+        <span class="fold-icon mr-2 transform transition-transform duration-200">📦</span>
+        <span class="stash-name flex-grow truncate">${stash.name}</span>
+        <span class="tab-count text-sm text-gray-600 dark:text-gray-400">(${stash.tabs.length})</span>
+        <div class="stash-actions">
+          <button class="ml-5 stash-action-btn restore-btn" title="Restore stash">Restore</button>
+          <button class="ml-1 stash-action-btn delete-btn" title="Delete stash">Delete</button>
+        </div>
+      </div>
+      <div class="stash-tabs">
+        ${stash.tabs.map(tab => `<div class="stash-tab">${tab.title}</div>`).join('')}
+      </div>
+    `;
+
+    const stashTitle = stashElement.querySelector('.stash-title');
+    const stashTabs = stashElement.querySelector('.stash-tabs');
+    const foldIcon = stashElement.querySelector('.fold-icon');
+
+    stashTitle.addEventListener('click', () => {
+      stashTabs.classList.toggle('hidden');
+      foldIcon.textContent = stashTabs.classList.contains('hidden') ? '📦' : '📦';
+    });
+
+    const restoreBtn = stashElement.querySelector('.restore-btn');
+    restoreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loadStash(stash.id);
+    });
+
+    const deleteBtn = stashElement.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteStash(stash.id);
+    });
+
+    stashList.appendChild(stashElement);
+  });
+};
+
+
 
 document.addEventListener('DOMContentLoaded', initializeSidebar);
