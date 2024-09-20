@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "TabXpert",
-  "version": "1.0.11",
-  "description": "Sorts tabs by domain and displays them in a tree-style sidebar",
+  "version": "1.0.14",
+  "description": "Search, Stash and Sort tabs by domain and displays them in a tree-style sidebar",
   "permissions": [
     "tabs",
     "activeTab",
@@ -32,7 +32,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "YOURID@YOURID.ID"
+      "id": "--"
     }
   },
   "web_accessible_resources": [

@@ -327,3 +327,52 @@ body {
 .delete-btn:hover {
   background-color: #dc2626;
 }
+
+
+
+.domain-title button {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.domain-title:hover button {
+  opacity: 1;
+}
+
+.domain-title button:hover {
+  transform: scale(1.1);
+}
+
+
+.stash-action-btn {
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.restore-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.restore-btn:hover {
+  background-color: #059669;
+}
+
+.new-window-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.new-window-btn:hover {
+  background-color: #2563eb;
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}

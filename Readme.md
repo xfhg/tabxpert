@@ -15,7 +15,7 @@
  Quality of Life Browser Tab Management. 
 </p>
 <p align="center"> 
-Search, Sort and Group your Tabs through your sidebar.
+Search, Stash, Sort and Group your Tabs on your sidebar.
 </p>
 </center>
 

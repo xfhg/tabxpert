@@ -3,6 +3,7 @@ let tabsByDomain = {};
 let activeTabId = null;
 let currentSearchTerm = '';
 let isSearchFocused = false;
+let stashStates = {};
 
 const debounce = (func, wait) => {
   let timeout;
@@ -53,12 +54,22 @@ const createDomainElement = (domain, domainData) => {
 
   // Create sort button
   const sortButton = document.createElement('button');
-  sortButton.className = 'ml-2 p-1 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
+  sortButton.className = 'ml-2 p-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
   sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3z" /></svg>';
   sortButton.title = 'Group all tabs for this domain together';
   sortButton.addEventListener('click', (e) => {
     e.stopPropagation();
     sortTabsForDomain(domain);
+  });
+
+  // Create new window button
+  const newWindowButton = document.createElement('button');
+  newWindowButton.className = 'ml-2 p-1 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50';
+  newWindowButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm1 2v10h12V5H4z" clip-rule="evenodd" /></svg>';
+  newWindowButton.title = 'Open all tabs for this domain in a new window';
+  newWindowButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openDomainInNewWindow(domain);
   });
 
   domainTitle.innerHTML = `
@@ -68,6 +79,7 @@ const createDomainElement = (domain, domainData) => {
   `;
   domainTitle.insertBefore(favicon, domainTitle.firstChild);
   domainTitle.appendChild(sortButton);
+  domainTitle.appendChild(newWindowButton);
   domainTitle.addEventListener('click', () => toggleDomain(domain));
   domainElement.appendChild(domainTitle);
 
@@ -81,6 +93,19 @@ const createDomainElement = (domain, domainData) => {
   return domainElement;
 };
 
+const openDomainInNewWindow = (domain) => {
+  const tabs = tabsByDomain[domain].tabs;
+  const urls = tabs.map(tab => tab.url);
+  
+  browser.windows.create({ url: urls }).then(() => {
+    // Optionally, close the tabs in the current window
+    // Uncomment the following lines if you want to close the tabs in the current window
+    const tabIds = tabs.map(tab => tab.id);
+    browser.tabs.remove(tabIds);
+  }).catch((error) => {
+    console.error(`Error opening tabs for domain ${domain} in new window:`, error);
+  });
+};
 
 const sortTabsForDomain = (domain) => {
   const tabs = tabsByDomain[domain].tabs;
@@ -392,45 +417,55 @@ const saveStash = () => {
       tabs: windowInfo.tabs.map(tab => ({ url: tab.url, title: tab.title }))
     };
     stashes.push(stash);
+    stashStates[stash.id] = true; // Set initial state to collapsed
     browser.storage.local.set({ stashes: stashes });
     updateStashList();
   });
 };
 
-const loadStash = (stashId) => {
+const loadStash = (stashId, inNewWindow) => {
   const stash = stashes.find(s => s.id === stashId);
   if (stash) {
-    browser.windows.getCurrent().then((currentWindow) => {
-      stash.tabs.forEach(tab => {
-        browser.tabs.create({ url: tab.url, windowId: currentWindow.id });
+    if (inNewWindow) {
+      browser.windows.create({ url: stash.tabs.map(tab => tab.url) });
+    } else {
+      browser.windows.getCurrent().then((currentWindow) => {
+        stash.tabs.forEach(tab => {
+          browser.tabs.create({ url: tab.url, windowId: currentWindow.id });
+        });
       });
-    });
+    }
   }
 };
-
 const deleteStash = (stashId) => {
   stashes = stashes.filter(s => s.id !== stashId);
+  delete stashStates[stashId]; // Remove the state for the deleted stash
   browser.storage.local.set({ stashes: stashes });
   updateStashList();
 };
-
 const updateStashList = () => {
   const stashList = document.getElementById('stash-list');
   stashList.innerHTML = '';
   stashes.forEach(stash => {
+    // Initialize state if it doesn't exist
+    if (stashStates[stash.id] === undefined) {
+      stashStates[stash.id] = true; // Start collapsed
+    }
+
     const stashElement = document.createElement('div');
     stashElement.className = 'stash';
     stashElement.innerHTML = `
       <div class="stash-title">
-        <span class="fold-icon mr-2 transform transition-transform duration-200">📦</span>
+        <span class="fold-icon mr-2 transform transition-transform duration-200">${stashStates[stash.id] ? '📦' : '📦'}</span>
         <span class="stash-name flex-grow truncate">${stash.name}</span>
         <span class="tab-count text-sm text-gray-600 dark:text-gray-400">(${stash.tabs.length})</span>
         <div class="stash-actions">
-          <button class="ml-5 stash-action-btn restore-btn" title="Restore stash">Restore</button>
-          <button class="ml-1 stash-action-btn delete-btn" title="Delete stash">Delete</button>
+          <button class="stash-action-btn ml-2 restore-btn" title="Restore stash in current window">Restore</button>
+          <button class="stash-action-btn new-window-btn" title="Open stash in new window">Open</button>
+          <button class="stash-action-btn delete-btn" title="Delete stash">X</button>
         </div>
       </div>
-      <div class="stash-tabs">
+      <div class="stash-tabs ${stashStates[stash.id] ? 'hidden' : ''}">
         ${stash.tabs.map(tab => `<div class="stash-tab">${tab.title}</div>`).join('')}
       </div>
     `;
@@ -440,14 +475,21 @@ const updateStashList = () => {
     const foldIcon = stashElement.querySelector('.fold-icon');
 
     stashTitle.addEventListener('click', () => {
+      stashStates[stash.id] = !stashStates[stash.id];
       stashTabs.classList.toggle('hidden');
-      foldIcon.textContent = stashTabs.classList.contains('hidden') ? '📦' : '📦';
+      foldIcon.textContent = stashStates[stash.id] ? '📦' : '📦';
     });
 
     const restoreBtn = stashElement.querySelector('.restore-btn');
     restoreBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      loadStash(stash.id);
+      loadStash(stash.id, false);
+    });
+
+    const newWindowBtn = stashElement.querySelector('.new-window-btn');
+    newWindowBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loadStash(stash.id, true);
     });
 
     const deleteBtn = stashElement.querySelector('.delete-btn');
@@ -459,7 +501,5 @@ const updateStashList = () => {
     stashList.appendChild(stashElement);
   });
 };
-
-
 
 document.addEventListener('DOMContentLoaded', initializeSidebar);
